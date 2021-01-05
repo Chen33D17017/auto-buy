@@ -1,0 +1,12 @@
+{
+    "targets": [
+        {
+            "asset": "eth",
+            "amount": 100
+        },
+        {
+            "asset": "btc",
+            "amount": 500
+        }
+    ]
+}
