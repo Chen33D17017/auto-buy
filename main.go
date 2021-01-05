@@ -31,17 +31,19 @@ func main() {
 
 	c := cron.New()
 
-	c.AddFunc("@every 5s", func() {
+	c.AddFunc("CRON_TZ=Asia/Tokyo 00 08 * * *", func() {
 		for _, target := range targetConfig.Targets {
-			fmt.Println(target.Type)
-			fmt.Println(target.Amount)
+			rst, err := buyAssetFromJYP(secretKeeper, target.Type, float64(target.Amount))
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(rst)
+			}
 		}
 	})
 	c.Start()
 
 	for {
-		// time.Sleep(time.Second * 10)
-		// fmt.Println("10s pass")
 	}
 }
 

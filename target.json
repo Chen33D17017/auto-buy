@@ -2,7 +2,7 @@
     "targets": [
         {
             "asset": "eth",
-            "amount": 100
+            "amount": 500
         },
         {
             "asset": "btc",
