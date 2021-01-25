@@ -13,7 +13,12 @@ import (
 	"time"
 )
 
+type KeyReader struct {
+	SecretKeepers []SecretKeeper `json:"data"`
+}
+
 type SecretKeeper struct {
+	Name      string `json:"name"`
 	ApiKey    string `json:"key"`
 	ApiSecret string `json:"secret"`
 }

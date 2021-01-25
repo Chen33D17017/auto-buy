@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/robfig/cron/v3"
@@ -20,10 +22,13 @@ type Target struct {
 	TimeRule string `json:"time"`
 }
 
-func main() {
+type DiscordContent struct {
+	Content string `json:"content"`
+}
 
-	var secretKeeper SecretKeeper
-	err := readJSONFile("secret.json", &secretKeeper)
+func main() {
+	var keyReader KeyReader
+	err := readJSONFile("secret.json", &keyReader)
 	checkError("read secret file fail %s", err)
 
 	var targetConfig TargetConfig
@@ -32,16 +37,19 @@ func main() {
 
 	c := cron.New()
 
-	for _, target := range targetConfig.Targets {
-		target := target
-		c.AddFunc(target.TimeRule, func() {
-			rst, err := buyAssetFromJYP(secretKeeper, target.Type, float64(target.Amount))
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Println(rst)
-			}
-		})
+	for _, secretKeeper := range keyReader.SecretKeepers {
+		secretKeeper := secretKeeper
+		for _, target := range targetConfig.Targets {
+			target := target
+			c.AddFunc(target.TimeRule, func() {
+				_, err := buyAssetFromJYP(secretKeeper, target.Type, float64(target.Amount))
+				if err != nil {
+					infoDiscord(fmt.Sprintf("err %s on buying %s for %s", err, target.Type, secretKeeper.Name))
+				} else {
+					infoDiscord(fmt.Sprintf("I have brought %v JYP of %s for %s", target.Amount, target.Type, secretKeeper.Name))
+				}
+			})
+		}
 	}
 
 	c.Start()
@@ -71,5 +79,23 @@ func readJSONFile(filename string, rst interface{}) error {
 	}
 
 	json.Unmarshal(byteValue, &rst)
+	return nil
+}
+
+func infoDiscord(msg string) error {
+	url := "https://discordapp.com/api/webhooks/803232063594823740/2ieDrkArEEwIAMSfT-YhNn9IMdlmuhCvy3o656aGlL8wrVFQpmA0DjcYvqBYxIBqUVJl"
+	method := "POST"
+
+	msgJSON, _ := json.Marshal(DiscordContent{msg})
+	payload := bytes.NewReader(msgJSON)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	req.Header.Add("Content-Type", "application/json")
+	client.Do(req)
 	return nil
 }
