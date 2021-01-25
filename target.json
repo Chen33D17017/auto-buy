@@ -2,11 +2,13 @@
     "targets": [
         {
             "asset": "eth",
-            "amount": 500
+            "amount": 500,
+            "time": "CRON_TZ=Asia/Tokyo 0 8 * * *"
         },
         {
             "asset": "btc",
-            "amount": 500
+            "amount": 1000,
+            "time": "CRON_TZ=Asia/Tokyo 0 8 */2 * *"
         }
     ]
 }
